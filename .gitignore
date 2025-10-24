@@ -1,0 +1,22 @@
+# Virtual Environment
+venv_latest/
+venv/
+
+# Rasa
+models/
+.rasa/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log

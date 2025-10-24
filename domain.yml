@@ -1,0 +1,169 @@
+version: "3.1"
+
+intents:
+  # General Conversation (from default project and your NLU data)
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - bot_challenge
+  - out_of_scope
+  - restart
+  - back
+  - mood_great
+  - mood_unhappy
+  
+  # Banking-Specific Intents
+  - check_balance
+  - transfer_money
+  - pay_bill
+  - check_transactions
+  - open_account
+  - apply_for_loan
+
+entities:
+  - account_type
+  - amount_of_money
+  - recipient_name
+  - bill_type
+  - number
+  - loan_type
+  - applicant_name
+
+slots:
+  account_type:
+    type: text
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: account_type
+    - type: from_text
+      not_intent:
+      - transfer_money
+
+  amount_of_money:
+    type: text
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: amount_of_money
+    - type: from_text
+      not_intent:
+      - pay_bill
+      - transfer_money
+
+  recipient_name:
+    type: text
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: recipient_name
+    - type: from_text
+      not_intent:
+      - transfer_money
+
+  bill_type:
+    type: text
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: bill_type
+    - type: from_text
+      not_intent:
+      - pay_bill
+
+  number:
+    type: text
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: number
+
+  loan_type:
+    type: text
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: loan_type
+
+  applicant_name:
+    type: text
+    influence_conversation: false
+    mappings:
+    - type: from_entity
+      entity: applicant_name
+
+forms:
+  pay_bill_form:
+    required_slots:
+      - bill_type
+      - amount_of_money
+
+  loan_application_form:
+    required_slots:
+      - loan_type
+      - applicant_name
+
+responses:
+  utter_greet:
+    - text: "👋 Welcome! I'm your **Bank Assistant**. How may I help with your account, transfers, or loans today?"
+  
+  utter_goodbye:
+    - text: "Thank you for banking with us. Have a great day!"
+    
+  utter_iamabot:
+    - text: "I am a virtual assistant for the bank, powered by Rasa."
+    
+  utter_out_of_scope:
+    - text: "I apologize, I can only assist with banking services like transfers and account inquiries."
+    
+  utter_happy:
+    - text: "Great, carry on!"
+  
+  utter_cheer_up:
+    - text: "Cheer up! Have you tried talking to someone? I'm here for you."
+  
+  utter_did_that_help:
+    - text: "Did that help you?"
+
+  utter_check_balance:
+    - text: "I can check your balance. Please tell me which account type (e.g., savings or checking) you'd like to check."
+
+  utter_check_transactions:
+    - text: "To view your recent transactions, please specify the account and number of transactions (e.g., last 5)."
+
+  utter_open_account:
+    - text: "We offer several types of accounts. You can view options on our website, or tell me which type you are interested in (e.g., savings, checking)."
+
+  utter_ask_bill_type:
+    - text: "What type of bill would you like to pay? (electricity, water, phone, internet, gas, or credit card)"
+  
+  utter_ask_amount_of_money:
+    - text: "Please enter the amount you want to pay (e.g., 100 or 100.50):"
+
+  utter_ask_loan_type:
+    - text: "What type of loan are you applying for? (e.g., personal, home, or auto)"
+
+  utter_ask_applicant_name:
+    - text: "Please provide the applicant's full name."
+
+  utter_bill_payment_details:
+    - text: "Confirming payment of {amount_of_money} for your {bill_type} bill. Is this correct?"
+
+  utter_loan_details:
+    - text: "Thank you. Your application for a {loan_type} loan is being processed. A specialist will contact you shortly."
+
+actions:
+  - utter_greet
+  - utter_goodbye
+  - utter_iamabot
+  - utter_out_of_scope
+  - utter_check_balance
+  - utter_check_transactions
+  - utter_open_account
+  - action_pay_bill_submit
+  - action_loan_apply_submit
+  - action_transfer_money
+  - pay_bill_form
+  - loan_application_form
+  - action_greet

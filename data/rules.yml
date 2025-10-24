@@ -1,0 +1,65 @@
+version: "3.1"
+
+rules:
+
+# --- General & Fallback Rules ---
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say 'I am a bot' anytime the user challenges the bot
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot
+
+- rule: Respond to Out-of-Scope messages
+  steps:
+  - intent: out_of_scope
+  - action: utter_out_of_scope
+
+# --- Single-Turn Banking Rules ---
+- rule: Respond to Check Balance
+  steps:
+  - intent: check_balance
+  - action: utter_check_balance
+
+- rule: Respond to Check Transactions
+  steps:
+  - intent: check_transactions
+  - action: utter_check_transactions
+
+- rule: Respond to Open Account
+  steps:
+  - intent: open_account
+  - action: utter_open_account
+
+# --- Form Activation Rules (Multi-Turn Logic) ---
+- rule: Activate Pay Bill Form
+  steps:
+  - intent: pay_bill
+  - action: pay_bill_form
+  - active_loop: pay_bill_form
+
+- rule: Submit Pay Bill Form
+  condition:
+  - active_loop: pay_bill_form
+  steps:
+  - action: pay_bill_form
+  - active_loop: null
+  - action: action_pay_bill_submit
+
+- rule: Activate Loan Application Form
+  steps:
+  - intent: apply_for_loan
+  - action: loan_application_form
+  - active_loop: loan_application_form
+
+- rule: Submit Loan Application Form
+  condition:
+  - active_loop: loan_application_form
+  steps:
+  - action: loan_application_form
+  - active_loop: null
+  - action: action_loan_apply_submit
+

@@ -1,0 +1,53 @@
+version: "3.1"
+
+stories:
+
+- story: happy path
+  steps:
+  - intent: greet
+  - action: action_greet
+  - intent: mood_great
+  - action: utter_happy
+
+- story: sad path 1
+  steps:
+  - intent: greet
+  - action: action_greet
+  - intent: mood_unhappy
+  - action: utter_cheer_up
+  - action: utter_did_that_help
+  - intent: affirm
+  - action: utter_happy
+
+- story: sad path 2
+  steps:
+  - intent: greet
+  - action: action_greet
+  - intent: mood_unhappy
+  - action: utter_cheer_up
+  - action: utter_did_that_help
+  - intent: deny
+  - action: utter_goodbye
+
+- story: pay bill flow
+  steps:
+  - intent: pay_bill
+  - action: pay_bill_form
+  - active_loop: pay_bill_form
+  - action: pay_bill_form
+  - active_loop: null
+  - action: action_pay_bill_submit
+
+- story: loan apply flow
+  steps:
+  - intent: apply_for_loan
+  - action: loan_application_form
+  - active_loop: loan_application_form
+  - action: loan_application_form
+  - active_loop: null
+  - action: action_loan_apply_submit
+
+- story: transfer money simple
+  steps:
+  - intent: transfer_money
+  - action: action_transfer_money

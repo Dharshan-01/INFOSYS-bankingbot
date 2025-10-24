@@ -1,0 +1,110 @@
+version: "3.1"
+
+nlu:
+# --- General Conversation Intents ---
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - hello there
+    - good morning
+    - good evening
+    - hey there
+    - hi there
+
+- intent: goodbye
+  examples: |
+    - bye
+    - goodbye
+    - see you around
+    - see ya
+    - catch you later
+    - talk later
+
+- intent: affirm
+  examples: |
+    - yes
+    - indeed
+    - of course
+    - that sounds good
+    - sure
+    - correct
+    - yep
+
+- intent: deny
+  examples: |
+    - no
+    - never
+    - I don't think so
+    - not really
+    - not interested
+    - nope
+
+- intent: bot_challenge
+  examples: |
+    - are you a bot?
+    - are you a human?
+    - what are you?
+    - what is your name?
+    - who are you?
+
+# --- Banking-specific intents ---
+- intent: check_balance
+  examples: |
+    - what is my account balance?
+    - check my balance
+    - how much money do I have in my [savings](account_type) account?
+    - what's my balance?
+    - show me my balance
+    - current balance
+    - can you check my balance for me?
+
+- intent: transfer_money
+  examples: |
+    - I want to transfer [1000 INR](amount) to [John Doe](receiver_name).
+    - transfer [5000](amount) to [gokul](receiver_name).
+    - send [250](amount) to my [savings](account_type) account.
+    - move [200 EUR](amount) to my [savings](account_type) account.
+    - I need to transfer money.
+    - please transfer [1500](amount)
+
+- intent: pay_bill
+  examples: |
+    - pay my [electricity](bill_type) bill
+    - I need to pay a bill
+    - pay [credit card](bill_type) bill
+    - can you pay my bills for me?
+    - pay my [phone](bill_type) bill of [200](amount) today.
+    - I want to pay [500](amount) for my [internet](bill_type)
+
+- intent: check_transactions
+  examples: |
+    - what are my recent transactions?
+    - show my transaction history
+    - list my last [5](number) transactions
+    - what have I spent lately?
+    - show my latest transactions
+
+- intent: open_account
+  examples: |
+    - I want to open a new account
+    - how do I open a [savings](account_type) account?
+    - start a new account
+    - what are the types of accounts I can open?
+
+- intent: apply_for_loan
+  examples: |
+    - I'd like to apply for a loan
+    - tell me about your loan options
+    - I need a [personal loan](loan_type)
+    - apply for a [home loan](loan_type)
+    - what are the requirements for a loan?
+
+# Out-of-scope intent
+- intent: out_of_scope
+  examples: |
+    - tell me a joke
+    - what's the weather like?
+    - I want to book a hotel
+    - can you help me with my travel plans?

@@ -1,0 +1,7 @@
+venv_latest\Scripts\activate
+
+rasa run actions --port 5055
+
+rasa run --port 5005
+
+rasa shell --port 5006
