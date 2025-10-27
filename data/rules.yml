@@ -1,65 +1,73 @@
 version: "3.1"
 
 rules:
+- rule: Greet user
+  steps:
+  - intent: greet
+  - action: utter_greet
 
-# --- General & Fallback Rules ---
-- rule: Say goodbye anytime the user says goodbye
+- rule: Say goodbye
   steps:
   - intent: goodbye
   - action: utter_goodbye
 
-- rule: Say 'I am a bot' anytime the user challenges the bot
+- rule: Respond to bot challenge
   steps:
   - intent: bot_challenge
   - action: utter_iamabot
 
-- rule: Respond to Out-of-Scope messages
+- rule: Handle nlu_fallback
+  condition:  # <-- Corrected: was 'conditions'
+  - active_loop: null  # Do not run this if a form is active
   steps:
-  - intent: out_of_scope
+  - intent: nlu_fallback
   - action: utter_out_of_scope
 
-# --- Single-Turn Banking Rules ---
-- rule: Respond to Check Balance
+- rule: Activate transfer form
   steps:
-  - intent: check_balance
-  - action: utter_check_balance
+  - intent: ask_transfer_money
+  - action: transfer_form
+  - active_loop: transfer_form
 
-- rule: Respond to Check Transactions
+- rule: Submit transfer form
+  condition:  # <-- Corrected: was 'conditions'
+  - active_loop: transfer_form
   steps:
-  - intent: check_transactions
-  - action: utter_check_transactions
-
-- rule: Respond to Open Account
-  steps:
-  - intent: open_account
-  - action: utter_open_account
-
-# --- Form Activation Rules (Multi-Turn Logic) ---
-- rule: Activate Pay Bill Form
-  steps:
-  - intent: pay_bill
-  - action: pay_bill_form
-  - active_loop: pay_bill_form
-
-- rule: Submit Pay Bill Form
-  condition:
-  - active_loop: pay_bill_form
-  steps:
-  - action: pay_bill_form
+  - action: transfer_form
   - active_loop: null
-  - action: action_pay_bill_submit
+  - slot_was_set:
+    - requested_slot: null
+  - action: utter_confirm_transfer
 
-- rule: Activate Loan Application Form
-  steps:
-  - intent: apply_for_loan
-  - action: loan_application_form
-  - active_loop: loan_application_form
-
-- rule: Submit Loan Application Form
-  condition:
-  - active_loop: loan_application_form
-  steps:
-  - action: loan_application_form
+- rule: Handle transfer confirmation - affirm
+  condition:  # <-- Corrected: was 'conditions'
   - active_loop: null
-  - action: action_loan_apply_submit
+  - slot_was_set:
+    - amount:
+    - recipient:
+  steps:
+  - intent: affirm
+  - action: utter_transfer_complete
+  - action: action_listen # Listen for next user message
+
+- rule: Handle transfer confirmation - deny
+  condition:  # <-- Corrected: was 'conditions'
+  - active_loop: null
+  - slot_was_set:
+    - amount:
+    - recipient:
+  steps:
+  - intent: deny
+  - action: utter_transfer_cancelled
+  - action: action_listen # Listen for next user message
+
+- rule: Explain fees # <-- New rule
+  steps:
+  - intent: ask_fees
+  - action: utter_explain_fees
+
+- rule: Explain loans # <-- New rule
+  steps:
+  - intent: ask_loan_info
+  - action: utter_explain_loan_info
 

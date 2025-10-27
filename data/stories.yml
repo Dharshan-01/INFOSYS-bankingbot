@@ -1,53 +1,36 @@
 version: "3.1"
 
 stories:
-
-- story: happy path
+- story: simple greet and goodbye
   steps:
   - intent: greet
-  - action: action_greet
-  - intent: mood_great
-  - action: utter_happy
-
-- story: sad path 1
-  steps:
-  - intent: greet
-  - action: action_greet
-  - intent: mood_unhappy
-  - action: utter_cheer_up
-  - action: utter_did_that_help
-  - intent: affirm
-  - action: utter_happy
-
-- story: sad path 2
-  steps:
-  - intent: greet
-  - action: action_greet
-  - intent: mood_unhappy
-  - action: utter_cheer_up
-  - action: utter_did_that_help
-  - intent: deny
+  - action: utter_greet
+  - intent: goodbye
   - action: utter_goodbye
 
-- story: pay bill flow
+- story: bot challenge
   steps:
-  - intent: pay_bill
-  - action: pay_bill_form
-  - active_loop: pay_bill_form
-  - action: pay_bill_form
-  - active_loop: null
-  - action: action_pay_bill_submit
+  - intent: bot_challenge
+  - action: utter_iamabot
 
-- story: loan apply flow
+- story: Check balance - ask for account type
   steps:
-  - intent: apply_for_loan
-  - action: loan_application_form
-  - active_loop: loan_application_form
-  - action: loan_application_form
-  - active_loop: null
-  - action: action_loan_apply_submit
+  - intent: check_balance
+  - action: utter_ask_account_type
+  - intent: inform_account_type
+  - action: utter_show_balance
 
-- story: transfer money simple
+- story: Check balance - account type provided
   steps:
-  - intent: transfer_money
-  - action: action_transfer_money
+  - intent: check_balance
+    entities:
+    - account_type: "savings"
+  - action: utter_show_balance
+
+- story: Check balance - account type provided (checking)
+  steps:
+  - intent: check_balance
+    entities:
+    - account_type: "checking"
+  - action: utter_show_balance
+

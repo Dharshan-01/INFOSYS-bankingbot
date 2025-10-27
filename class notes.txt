@@ -1,0 +1,16 @@
+config.yml      -- pipeline and settings of the NLU components
+credentials.yml -- configures third paty integrations linke slack or telegram
+domain.yml      -- defines the intents,entites,slots,responses,actions and forms conversation (blueprint for the behaviours)
+endpoint.yml    -- defines how your assistant connects to key servies
+
+
+action/_init_.py  --
+action/actions.py -- file to locate the creating the custom actions
+
+
+data/nlu.yml     --  manage all nlu training data;intents and entities
+data/rules.yml   --  traning data used to train the assistant's dialogue management model (short pieces)
+data/stories.yml --  same as the generalize to unseen conversation
+
+
+test/test_stories  -- llow you to provide entire conversations and test that, given certain user input

@@ -1,35 +1,45 @@
-# The config recipe.
-# Rasa NLU + Core configuration suitable for Rasa 3.x
+# The version of the config file format
+version: "3.1"
+
+# The top-level key for setting policies and pipeline components
+recipe: default.v1
+
+# Configuration for the NLU pipeline
 language: en
-assistant_id: banking_bot
 
 pipeline:
-  - name: WhitespaceTokenizer
-  - name: RegexFeaturizer
-  - name: LexicalSyntacticFeaturizer
-  - name: CountVectorsFeaturizer
-  - name: CountVectorsFeaturizer
-    analyzer: char_wb
-    min_ngram: 1
-    max_ngram: 4
-  - name: DIETClassifier
-    epochs: 100
-    constrain_similarities: true
-  - name: EntitySynonymMapper
-  - name: ResponseSelector
-    epochs: 100
-    constrain_similarities: true
-  - name: FallbackClassifier
-    threshold: 0.35
-    ambiguity_threshold: 0.1
+# --- Sane defaults for a new project ---
+- name: WhitespaceTokenizer
+- name: RegexFeaturizer
+- name: LexicalSyntacticFeaturizer
+- name: CountVectorsFeaturizer
+- name: CountVectorsFeaturizer
+  analyzer: char_wb
+  min_ngram: 1
+  max_ngram: 4
+- name: DIETClassifier
+  epochs: 100
+  constrain_similarities: true
+- name: EntitySynonymMapper
+- name: ResponseSelector
+  epochs: 100
+  constrain_similarities: true
+  # --- New component for Fallback ---
+- name: FallbackClassifier
+  threshold: 0.7    # You can tune this value
+  ambiguity_threshold: 0.1
 
+# Configuration for the dialogue management policies
 policies:
-  - name: MemoizationPolicy
-  - name: RulePolicy
-  - name: UnexpecTEDIntentPolicy
-    max_history: 5
-    epochs: 100
-  - name: TEDPolicy
-    max_history: 5
-    epochs: 100
-    constrain_similarities: true
+# --- Sane defaults for a new project ---
+- name: MemoizationPolicy
+- name: RulePolicy
+- name: UnexpecTEDIntentPolicy
+  max_history: 5
+  epochs: 100
+- name: TEDPolicy
+  max_history: 5
+  epochs: 100
+  constrain_similarities: true
+
+assistant_id: 20251024-221805-threaded-marinade

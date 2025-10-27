@@ -5,3 +5,11 @@ rasa run actions --port 5055
 rasa run --port 5005
 
 rasa shell --port 5006
+
+
+
+to clean the repo -  python clean_repo.py
+
+to activate       -  python -m venv venv_latest
+
+ to install rasa   - 
