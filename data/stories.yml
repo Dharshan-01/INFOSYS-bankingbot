@@ -1,36 +1,93 @@
 version: "3.1"
-
 stories:
-- story: simple greet and goodbye
-  steps:
-  - intent: greet
-  - action: utter_greet
-  - intent: goodbye
-  - action: utter_goodbye
+  - story: Greet and Goodbye
+    steps:
+      - intent: greet
+      - action: utter_greet
+      - intent: goodbye
+      - action: utter_goodbye
 
-- story: bot challenge
-  steps:
-  - intent: bot_challenge
-  - action: utter_iamabot
+  - story: Bot challenge
+    steps:
+      - intent: bot_challenge
+      - action: utter_iamabot
 
-- story: Check balance - ask for account type
-  steps:
-  - intent: check_balance
-  - action: utter_ask_account_type
-  - intent: inform_account_type
-  - action: utter_show_balance
+  - story: Check balance - full story
+    steps:
+      - intent: check_balance
+      - action: utter_ask_account_type
+      - intent: inform_account_type
+        entities:
+          - account_type: "savings"
+      - slot_was_set:
+          - account_type: "savings"
+      - action: utter_show_balance
 
-- story: Check balance - account type provided
-  steps:
-  - intent: check_balance
-    entities:
-    - account_type: "savings"
-  - action: utter_show_balance
+  - story: Check balance - with entity
+    steps:
+      - intent: check_balance
+        entities:
+          - account_type: "checking"
+      - slot_was_set:
+          - account_type: "checking"
+      - action: utter_show_balance
 
-- story: Check balance - account type provided (checking)
-  steps:
-  - intent: check_balance
-    entities:
-    - account_type: "checking"
-  - action: utter_show_balance
+  - story: Transfer money - affirm
+    steps:
+      - action: utter_confirm_transfer
+      - intent: affirm
+      - action: utter_transfer_complete
 
+  - story: Transfer money - deny
+    steps:
+      - action: utter_confirm_transfer
+      - intent: deny
+      - action: utter_transfer_cancelled
+
+  - story: Ask transaction history
+    steps:
+      - intent: ask_transaction_history
+      - action: utter_show_transaction_history
+      - action: utter_anything_else
+
+  # --- New Bug Fixes for Loops and Context ---
+
+  - story: Ask credit card and APPLY (Fixes loop)
+    steps:
+      - intent: ask_credit_card
+      - action: utter_ask_credit_card
+      - intent: affirm  # User says 'yes'
+      - action: utter_ask_apply
+      - intent: affirm  # User says 'yes' again
+      - action: utter_application_start
+      - action: utter_anything_else
+
+  - story: Ask credit card and DENY
+    steps:
+      - intent: ask_credit_card
+      - action: utter_ask_credit_card
+      - intent: deny # User says 'no'
+      - action: utter_anything_else
+
+  - story: Ask specific loan and APPLY (Fixes loop)
+    steps:
+      - intent: ask_specific_loan
+      - action: action_handle_specific_loan
+      - intent: affirm  # User says 'ok' or 'yes'
+      - action: utter_ask_apply
+      - intent: affirm  # User says 'yes' again
+      - action: utter_application_start
+      - action: utter_anything_else
+
+  - story: Ask specific loan and DENY
+    steps:
+      - intent: ask_specific_loan
+      - action: action_handle_specific_loan
+      - intent: deny   # User says 'no'
+      - action: utter_anything_else
+  
+  - story: Handle affirm after balance check (Fixes context bleed)
+    steps:
+      - action: utter_show_balance
+      - intent: affirm  # User says 'ok' after seeing balance
+      - action: utter_anything_else

@@ -1,102 +1,313 @@
 version: "3.1"
-
 nlu:
-- intent: greet
-  examples: |
-    - hey
-    - hello
-    - hi
-    - hello there
-    - good morning
-    - good evening
-    - hey there
+  - intent: greet
+    examples: |
+      - hey
+      - hello
+      - hi
+      - good morning
+      - good evening
+      - hey there
 
-- intent: goodbye
-  examples: |
-    - bye
-    - goodbye
-    - see you around
-    - see you later
-    - cu
+  - intent: goodbye
+    examples: |
+      - bye
+      - goodbye
+      - see you around
+      - see you later
+      - cu
 
-- intent: bot_challenge
-  examples: |
-    - are you a bot?
-    - are you human?
-    - am I talking to a bot?
-    - am I talking to a human?
+  - intent: bot_challenge
+    examples: |
+      - are you a bot?
+      - are you human?
+      - am I talking to a bot?
+      - am I talking to a human?
 
-- intent: check_balance
-  examples: |
-    - what's my balance?
-    - how much money do I have?
-    - check my account balance
-    - i need to check my balance
-    - show me the balance
-    - balance check
-    - i need to check my balance amount
-    - check balance in [savings](account_type)
-    - show me my [checking](account_type) account balance
+  - intent: check_balance
+    examples: |
+      - what's my balance?
+      - how much money do I have?
+      - check my balance
+      - balance check
+      - i need to check my balance
+      - show me my balance
+      - can I get my balance?
+      - i need my balance
+      - i need to check my balance amount
+      - check balance in [savings](account_type)
+      - how much is in my [checking](account_type) account
+      - current balance
+      - how much is in savings
 
-- intent: inform_account_type
-  examples: |
-    - [savings](account_type)
-    - [checking](account_type)
-    - my [savings](account_type) account
-    - for [checking](account_type)
+  - intent: inform_account_type
+    examples: |
+      - [savings](account_type)
+      - [checking](account_type)
+      - it's my [savings](account_type) account
+      - my [checking](account_type) account
+      - for [savings](account_type)
+      - for [checking](account_type)
+      - [sacings](account_type:savings)
 
-- intent: ask_transfer_money
-  examples: |
-    - I want to send money
-    - I need to transfer money
-    - send [50](amount) to [Alex](recipient)
-    - transfer [100 dollars](amount) to [Sarah](recipient)
-    - i need to transfer the amount
-    - i need to send money to [mukil](recipient)
-    - transfer [50](amount) to [priya](recipient)
-    - transfer [50](amount) to [prakash](recipient)
+  - intent: ask_transfer_money
+    examples: |
+      - I want to transfer money
+      - i need to transfer the amount
+      - send money
+      - i need to send money to mukil
+      - i have to transfer amount to priya
+      - transfer [50](amount) to [priya](recipient)
+      - i need to send [100 dollars](amount) to [alex](recipient)
+      - can you send [20](amount) to [gokul](recipient)?
+      - transfer [50](amount) to [prakash](recipient)
+      - i need to transfer [60](amount) to [gokukl](recipient)
+      - send [$50](amount) to [Alex](recipient)
+      - send [100](amount) to [Sarah](recipient)
+      - make a payment
+      - move money
 
-- intent: affirm
-  examples: |
-    - yes
-    - y
-    - indeed
-    - of course
-    - that's right
-    - correct
-    - ok
-    - yup
+  - intent: affirm
+    examples: |
+      - yes
+      - indeed
+      - of course
+      - that sounds good
+      - correct
+      - yup
+      - ok
+      - okay
+      - yes please
+      - sure
+      - alright
+      - yes proceed
+      - fine
+      - sounds good
 
-- intent: deny
-  examples: |
-    - no
-    - n
-    - never
-    - I don't think so
-    - don't
-    - nope
+  - intent: deny
+    examples: |
+      - no
+      - never
+      - I don't think so
+      - don't do that
+      - no way
+      - not really
+      - nope
+      - no thanks
+      - that's wrong
+      - cancel
 
-- intent: nlu_fallback
-  examples: |
-    - I want to order a pizza
-    - what's the weather today?
-    - who is the president?
-    - my car is broken
-    - i need help with my homework
+  - intent: ask_loan_info
+    examples: |
+      - I need a loan
+      - can I get a loan?
+      - what loans do you offer?
+      - i'm interested in a loan
+      - tell me about your loans
+      - loan
+      - can i get the detaills about loan
+      - what are the loan details?
+      - details on loans
+      - loan options
+      - do you give out loans?
 
-- intent: ask_fees  # <-- New examples
-  examples: |
-    - what are your fees?
-    - how much are bank fees?
-    - tell me about your fees
-    - do you charge for transfers?
-    - account maintenance fees
+  - intent: ask_specific_loan
+    examples: |
+      - i need a [home](loan_type) loan
+      - tell me about [auto](loan_type) loans
+      - what are your [personal](loan_type) loan rates?
+      - [home](loan_type) loan
+      - [auto](loan_type)
+      - [personal](loan_type) loan
+      - can i get a [car](loan_type:auto) loan?
+      - i want to buy a [house](loan_type:home)
+      - can you tell about the auto loan
+      - tell about personal loan
+      - mortgage details
+      - what's a [personal](loan_type) loan?
+      - [auto](loan_type) financing
 
-- intent: ask_loan_info  # <-- New examples
-  examples: |
-    - I need a loan
-    - tell me about your loans
-    - can I get a home loan?
-    - what are your loan options?
-    - information on personal loans
+  - intent: ask_credit_card
+    examples: |
+      - I need a credit card
+      - can I get a credit card?
+      - what credit cards do you have?
+      - tell me about your credit cards
+      - i need my cridiet card fetails
+      - credit cards
+      - card
+      - options for credit cards
+      - what is your best rewards card?
 
+  - intent: ask_fees
+    examples: |
+      - what are your fees?
+      - how much are your bank fees?
+      - do you charge a monthly fee?
+      - fee schedule
+      - overdraft fee
+      - atm fee
+      - what are the charges?
+      - list of fees
+
+  - intent: ask_services
+    examples: |
+      - what can you do?
+      - what services do you offer?
+      - what are the services availabe ?
+      - show me your services
+      - help
+      - what else can you do?
+      - list of services
+
+  - intent: pay_bill
+    examples: |
+      - I need to pay a bill
+      - pay my [electricity](bill_type) bill
+      - i want to pay my [water](bill_type) bill
+      - pay my [gas](bill_type) bill
+      - can you pay a bill for me?
+      - bill pay
+      - make a bill payment
+      - pay my phone bill
+
+  - intent: report_lost_card
+    examples: |
+      - I lost my [credit card](card_type:credit)
+      - my [debit card](card_type:debit) was stolen
+      - i need to report a lost card
+      - freeze my [credit card](card_type:credit)
+      - i can't find my [debit card](card_type:debit)
+      - someone stole my wallet
+      - my card is missing
+
+  - intent: activate_card
+    examples: |
+      - I need to activate my new card
+      - activate my [debit card](card_type:debit)
+      - how do I activate my [credit card](card_type:credit)?
+      - new card activation
+      - got my new card, how to activate?
+
+  - intent: ask_transaction_history
+    examples: |
+      - show me my last transaction
+      - what was my last purchase?
+      - can you show my last transaction
+      - transaction history
+      - recent transactions
+      - list my recent payments
+      - where did I spend money?
+
+  - intent: ask_open_account
+    examples: |
+      - I want to open a new account
+      - how do I open a bank account?
+      - start a new account
+      - can I open a checking account?
+      - open a savings account
+      - what do I need to open an account?
+
+  - intent: ask_interest_rates
+    examples: |
+      - what are your interest rates?
+      - tell me the APY for savings
+      - what's the interest on a home loan?
+      - rates
+      - savings account rate
+      - what's the interest on a [personal](loan_type) loan?
+      - current APY
+
+  - intent: ask_atm_locator
+    examples: |
+      - where is the nearest ATM?
+      - find a branch near me
+      - ATM locator
+      - I need to find your bank
+      - nearest branch
+      - where is a bank machine?
+
+  - intent: ask_human_support
+    examples: |
+      - I need to talk to a human
+      - connect me with an agent
+      - can I talk to a person?
+      - customer support
+      - speak to a representative
+      - I need help from a person
+      - human
+
+  - intent: ask_investments
+    examples: |
+      - Can I invest with you?
+      - Do you offer stocks?
+      - What about mutual funds?
+      - investment services
+      - tell me about investments
+      - how can I invest my money?
+      - do you have a robo-advisor?
+      - talk to a financial advisor
+      - tell me about ETFs
+
+  - intent: ask_account_management
+    examples: |
+      - I need to change my address
+      - update my phone number
+      - how do I change my PIN?
+      - I need to order new checks
+      - manage my account
+      - what's my routing number?
+      - what's my account number?
+      - I need to update my personal details
+      - how do I close my account?
+
+  - intent: ask_security_fraud
+    examples: |
+      - I see a suspicious charge
+      - I think I got a phishing email
+      - what is phishing?
+      - is my account secure?
+      - fraud alert
+      - report fraud
+      - my account was hacked
+      - I think someone has my password
+      - is this email from you?
+      - suspicious activity on my account
+
+  - intent: apply_for_product
+    examples: |
+      - I want to apply
+      - i ned to apply for it
+      - i need to apply for the house loan
+      - let's start an application
+      - I want to apply for a [credit card](card_type)
+      - how do I apply for a [home](loan_type) loan?
+      - apply for [personal](loan_type) loan
+      - I want to apply for that [loan](loan_type)
+      - start my [loan](loan_type) application
+      - I want to apply for that [credit card](card_type)
+      - let's apply
+      - take me to the application
+
+  - intent: nlu_fallback
+    examples: |
+      - I want to order a pizza
+      - what's the weather today?
+      - my dog is sick
+      - play some music
+      - asdfghjkl
+      - tell me a joke
+      - what's your name?
+      - who built you?
+
+  # Synonym mapping for account_type
+  - synonym: "savings"
+    examples: |
+      - sacings
+      - saving
+      - my savings account
+  - synonym: "checking"
+    examples: |
+      - chequing
+      - checkings
+      - my checking account

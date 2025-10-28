@@ -1,93 +1,192 @@
 version: "3.1"
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
 
-# 1. Define all intents
 intents:
-- greet
-- goodbye
-- bot_challenge
-- check_balance
-- inform_account_type
-- ask_transfer_money
-- affirm
-- deny
-- nlu_fallback
-- ask_fees
-- ask_loan_info
+  - greet
+  - goodbye
+  - bot_challenge
+  - check_balance
+  - inform_account_type
+  - ask_transfer_money
+  - nlu_fallback
+  - affirm
+  - deny
+  - ask_loan_info
+  - ask_credit_card
+  - ask_fees
+  - ask_services
+  - pay_bill
+  - report_lost_card
+  - activate_card
+  - ask_specific_loan
+  - ask_transaction_history
+  - ask_open_account
+  - ask_interest_rates
+  - ask_atm_locator
+  - ask_human_support
+  - ask_investments        # New "Super" Intent
+  - ask_account_management # New "Super" Intent
+  - ask_security_fraud     # New "Super" Intent
 
-# 2. Define all entities
 entities:
-- account_type
-- amount
-- recipient
+  - account_type
+  - amount
+  - recipient
+  - loan_type
+  - bill_type
+  - card_type
 
-# 3. Define all slots
 slots:
   account_type:
     type: text
-    influence_conversation: false
+    influence_conversation: true
     mappings:
-    - type: from_entity
-      entity: account_type
-    - type: from_text
-      intent: inform_account_type
-
+      - type: from_entity
+        entity: account_type
   recipient:
     type: text
     influence_conversation: false
     mappings:
-    - type: from_entity
-      entity: recipient
-    - type: from_text
-      conditions:  # <-- This is the fix
-      - active_loop: transfer_form
-        requested_slot: recipient
-
+      - type: from_entity
+        entity: recipient
+      - type: from_text
+        conditions:
+          - active_loop: transfer_form
+            requested_slot: recipient
   amount:
     type: text
     influence_conversation: false
     mappings:
-    - type: from_entity
-      entity: amount
-    - type: from_text
-      conditions:  # <-- This is the fix
-      - active_loop: transfer_form
-        requested_slot: amount
+      - type: from_entity
+        entity: amount
+      - type: from_text
+        conditions:
+          - active_loop: transfer_form
+            requested_slot: amount
+  loan_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: loan_type
+  bill_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: bill_type
+  card_type:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: card_type
+  requested_slot:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_text
 
-# 4. Define bot responses
 responses:
   utter_greet:
-  - text: "Hello! I'm your banking assistant. How can I help you today?"
+    - text: "Hello! I'm your banking assistant. How can I help you today?"
   utter_goodbye:
-  - text: "Goodbye!"
+    - text: "Goodbye! Have a great day."
   utter_iamabot:
-  - text: "I am a bot, powered by Rasa."
+    - text: "I am a helpful banking bot!"
   utter_ask_account_type:
-  - text: "Which account would you like to check? Savings or Checking?"
+    - text: "Which account would you like to check? Savings or Checking?"
   utter_show_balance:
-  - text: "The balance for your {account_type} account is 1000."
+    - text: "The balance for your {account_type} account is 1000."
   utter_confirm_transfer:
-  - text: "Just to confirm, you want to send {amount} to {recipient}?"
+    - text: "Just to confirm, you want to send {amount} to {recipient}?"
   utter_transfer_complete:
-  - text: "The transfer of {amount} to {recipient} is complete."
+    - text: "The transfer of {amount} to {recipient} is complete."
   utter_transfer_cancelled:
-  - text: "Transfer cancelled."
+    - text: "Okay, I have cancelled the transfer."
   utter_out_of_scope:
-  - text: "I'm sorry, I can only help with banking-related questions. How can I assist you with your accounts?"
-  utter_explain_fees:
-  - text: "We have a $5 monthly maintenance fee for checking accounts. Transfers are free."
-  utter_explain_loan_info:
-  - text: "We offer personal, home, and auto loans. Would you like more details on a specific one?"
-  
-  # Form responses
+    - text: "I'm sorry, I can only help with banking-related questions. How can I assist you with your accounts?"
   utter_ask_recipient:
-  - text: "Who would you like to send the money to?"
+    - text: "Who would you like to send the money to?"
   utter_ask_amount:
-  - text: "How much would you like to send?"
+    - text: "How much would you like to send?"
+  
+  # Loan Responses
+  utter_ask_loan_info:
+    - text: "We offer personal, home, and auto loans. Would you like more details on a specific one?"
+  utter_loan_details_personal:
+    - text: "Our personal loans offer flexible repayment terms and competitive interest rates."
+  utter_loan_details_home:
+    - text: "We have fixed and variable-rate home loans."
+  utter_loan_details_auto:
+    - text: "Our auto loans can be used for new or used cars, with flexible terms to fit your budget."
+  
+  # Credit Card Response
+  utter_ask_credit_card:
+    - text: "We offer several credit cards, including cashback, travel rewards, and low-interest options. Are you interested in applying or learning about a specific one?"
+  
+  # Fees Response
+  utter_ask_fees:
+    - text: "Common fees include a $5 monthly maintenance fee (waived with direct deposit) and a $3 out-of-network ATM fee. You can find our full fee schedule on our website."
 
-# 5. Define forms
+  # General Services Response
+  utter_ask_services:
+    - text: "As a 'super chatbot', I can help with account balances, transfers, bill payments, card services, loans, investments, account management, and security questions. How can I help?"
+
+  # Bill Pay Responses
+  utter_pay_bill:
+    - text: "I can help with that. What kind of bill do you need to pay? (e.g., electricity, water, gas)"
+  utter_ask_bill_amount:
+    - text: "How much is the {bill_type} bill?"
+  utter_bill_paid:
+    - text: "Okay, I have paid your {bill_type} bill of {amount}."
+
+  # Card Services Responses
+  utter_report_lost_card:
+    - text: "I'm sorry to hear that. I will immediately freeze your {card_type} card. A new one will be mailed to you."
+  utter_card_reported:
+    - text: "Your {card_type} card has been reported as lost/stolen and is now frozen. A new card is on its way."
+  utter_ask_card_type:
+    - text: "Are you referring to your debit card or credit card?"
+  utter_activate_card:
+    - text: "I can help you activate your new card. Please provide the 16-digit card number and the 3-digit CVV."
+
+  # Bug Fix & Feature Responses
+  utter_ask_apply:
+    - text: "Great! Would you like to start an application?"
+  utter_anything_else:
+    - text: "Okay. Is there anything else I can help you with today?"
+  utter_application_start:
+    - text: "Okay! I've opened our secure application form for you in a new tab. Please fill it out and we'll get back to you."
+  utter_show_transaction_history:
+    - text: "Your last transaction was a payment of $52.50 to 'Coffee Shop' on 10/26/2025."
+  utter_ask_open_account:
+    - text: "We'd love to have you! You can open a new checking or savings account on our website. Would you like me to send you the link?"
+  utter_ask_interest_rates:
+    - text: "Our current interest rate for a high-yield savings account is 4.5% APY. Loan rates vary, are you interested in a specific loan?"
+  utter_ask_atm_locator:
+    - text: "You can find our nearest ATM or branch by using the locator on our website. Please enable location services or enter your zip code there."
+  utter_ask_human_support:
+    - text: "I can connect you with a human agent. Please hold while I transfer you. (In a real bot, this would trigger a handoff)."
+
+  # --- New "Super Chatbot" Responses ---
+
+  utter_ask_investments:
+    - text: "We offer investment services, including stocks, ETFs, and mutual funds. Our financial advisors can help you build a portfolio that meets your goals. Are you interested in speaking with an advisor?"
+
+  utter_ask_account_management:
+    - text: "I can help with some account management tasks. Are you looking to update your personal details (like address or phone number), change your PIN, or order checks?"
+  
+  utter_ask_security_fraud:
+    - text: "Your security is our top priority. If you see a suspicious charge, please report it immediately. Never share your PIN or password. Be aware of phishing emails pretending to be from us. We will never ask for your password in an email."
+
 forms:
   transfer_form:
     required_slots:
-    - recipient
-    - amount
+      - recipient
+      - amount
 
+actions:
+  - action_handle_specific_loan

@@ -1,14 +1,6 @@
-# This file contains the different endpoints your bot can use.
-# Reference: https://rasa.com/docs/rasa/user-guide/connectors/your-own-website/
+# This file contains the configurations for the action server,
+# which runs your custom Python code.
+# https://rasa.com/docs/rasa/action-server
 
 action_endpoint:
   url: "http://localhost:5055/webhook"
-
-# Tracker store (optional) - uncomment & configure if needed
-# tracker_store:
-#   type: redis
-#   url: localhost
-#   port: 6379
-#   db: 0
-#   password: null
-#   use_ssl: false

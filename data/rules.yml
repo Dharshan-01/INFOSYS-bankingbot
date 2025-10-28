@@ -1,73 +1,125 @@
 version: "3.1"
-
 rules:
-- rule: Greet user
-  steps:
-  - intent: greet
-  - action: utter_greet
+  - rule: Greet user
+    steps:
+      - intent: greet
+      - action: utter_greet
 
-- rule: Say goodbye
-  steps:
-  - intent: goodbye
-  - action: utter_goodbye
+  - rule: Say goodbye
+    steps:
+      - intent: goodbye
+      - action: utter_goodbye
 
-- rule: Respond to bot challenge
-  steps:
-  - intent: bot_challenge
-  - action: utter_iamabot
+  - rule: Respond to bot challenge
+    steps:
+      - intent: bot_challenge
+      - action: utter_iamabot
 
-- rule: Handle nlu_fallback
-  condition:  # <-- Corrected: was 'conditions'
-  - active_loop: null  # Do not run this if a form is active
-  steps:
-  - intent: nlu_fallback
-  - action: utter_out_of_scope
+  - rule: Activate the transfer form
+    condition:
+      - active_loop: null
+    steps:
+      - intent: ask_transfer_money
+      - action: transfer_form
+      - active_loop: transfer_form
 
-- rule: Activate transfer form
-  steps:
-  - intent: ask_transfer_money
-  - action: transfer_form
-  - active_loop: transfer_form
+  - rule: Submit transfer form
+    condition:
+      - active_loop: transfer_form
+    steps:
+      - action: transfer_form
+      - active_loop: null
+      - slot_was_set:
+          - requested_slot: null
+      - action: utter_confirm_transfer
 
-- rule: Submit transfer form
-  condition:  # <-- Corrected: was 'conditions'
-  - active_loop: transfer_form
-  steps:
-  - action: transfer_form
-  - active_loop: null
-  - slot_was_set:
-    - requested_slot: null
-  - action: utter_confirm_transfer
+  - rule: Handle fallback
+    steps:
+      - intent: nlu_fallback
+      - action: utter_out_of_scope
 
-- rule: Handle transfer confirmation - affirm
-  condition:  # <-- Corrected: was 'conditions'
-  - active_loop: null
-  - slot_was_set:
-    - amount:
-    - recipient:
-  steps:
-  - intent: affirm
-  - action: utter_transfer_complete
-  - action: action_listen # Listen for next user message
+  # --- Rules for Banking Features ---
 
-- rule: Handle transfer confirmation - deny
-  condition:  # <-- Corrected: was 'conditions'
-  - active_loop: null
-  - slot_was_set:
-    - amount:
-    - recipient:
-  steps:
-  - intent: deny
-  - action: utter_transfer_cancelled
-  - action: action_listen # Listen for next user message
+  - rule: Handle general loan question
+    steps:
+      - intent: ask_loan_info
+      - action: utter_ask_loan_info
 
-- rule: Explain fees # <-- New rule
-  steps:
-  - intent: ask_fees
-  - action: utter_explain_fees
+  - rule: Handle specific loan question
+    steps:
+      - intent: ask_specific_loan
+      - action: action_handle_specific_loan
 
-- rule: Explain loans # <-- New rule
-  steps:
-  - intent: ask_loan_info
-  - action: utter_explain_loan_info
+  - rule: Handle credit card question
+    steps:
+      - intent: ask_credit_card
+      - action: utter_ask_credit_card
 
+  - rule: Handle fees question
+    steps:
+      - intent: ask_fees
+      - action: utter_ask_fees
+
+  - rule: Handle services question
+    steps:
+      - intent: ask_services
+      - action: utter_ask_services
+
+  - rule: Handle pay bill
+    steps:
+      - intent: pay_bill
+      - action: utter_pay_bill
+
+  - rule: Handle report lost card
+    steps:
+      - intent: report_lost_card
+      - action: utter_report_lost_card
+
+  - rule: Handle activate card
+    steps:
+      - intent: activate_card
+      - action: utter_activate_card
+      
+  - rule: Handle open account
+    steps:
+      - intent: ask_open_account
+      - action: utter_ask_open_account
+
+  - rule: Handle interest rates
+    steps:
+      - intent: ask_interest_rates
+      - action: utter_ask_interest_rates
+
+  - rule: Handle ATM locator
+    steps:
+      - intent: ask_atm_locator
+      - action: utter_ask_atm_locator
+
+  - rule: Handle human support
+    steps:
+      - intent: ask_human_support
+      - action: utter_ask_human_support
+
+  # --- New "Super Chatbot" Rules ---
+
+  - rule: Handle investments
+    steps:
+      - intent: ask_investments
+      - action: utter_ask_investments
+
+  - rule: Handle account management
+    steps:
+      - intent: ask_account_management
+      - action: utter_ask_account_management
+
+  - rule: Handle security and fraud
+    steps:
+      - intent: ask_security_fraud
+      - action: utter_ask_security_fraud
+
+  # --- New Rule to Fix "Apply" Bug ---
+
+  - rule: Handle apply for product
+    steps:
+      - intent: apply_for_product
+      - action: utter_ask_apply
