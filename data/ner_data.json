@@ -1,0 +1,163 @@
+[
+    {
+        "text": "transfer $1000 to my mom",
+        "entities": [
+            {"start": 9, "end": 14, "label": "AMOUNT"},
+            {"start": 22, "end": 25, "label": "RECIPIENT"}
+        ]
+    },
+    {
+        "text": "I need to send 50 dollars to John",
+        "entities": [
+            {"start": 15, "end": 25, "label": "AMOUNT"},
+            {"start": 29, "end": 33, "label": "RECIPIENT"}
+        ]
+    },
+    {
+        "text": "move $50 from checking to savings",
+        "entities": [
+            {"start": 5, "end": 8, "label": "AMOUNT"},
+            {"start": 14, "end": 22, "label": "ACCOUNT_TYPE"},
+            {"start": 26, "end": 33, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "send 20 bucks to Alex",
+        "entities": [
+            {"start": 5, "end": 14, "label": "AMOUNT"},
+            {"start": 18, "end": 22, "label": "RECIPIENT"}
+        ]
+    },
+    {
+        "text": "please transfer 500",
+        "entities": [
+            {"start": 16, "end": 19, "label": "AMOUNT"}
+        ]
+    },
+    {
+        "text": "send $250 to my sister",
+        "entities": [
+            {"start": 5, "end": 9, "label": "AMOUNT"},
+            {"start": 17, "end": 23, "label": "RECIPIENT"}
+        ]
+    },
+    {
+        "text": "can you send 100 to my other account?",
+        "entities": [
+            {"start": 13, "end": 16, "label": "AMOUNT"}
+        ]
+    },
+    {
+        "text": "what is my savings account balance",
+        "entities": [
+            {"start": 11, "end": 18, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "how much do I have in checking",
+        "entities": [
+            {"start": 23, "end": 31, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "what's in my checking account",
+        "entities": [
+            {"start": 13, "end": 21, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "balance for my main account",
+        "entities": [
+            {"start": 15, "end": 27, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "show me the balance in savings",
+        "entities": [
+            {"start": 25, "end": 32, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "pay my credit card bill",
+        "entities": [
+            {"start": 7, "end": 19, "label": "BILL_TYPE"}
+        ]
+    },
+    {
+        "text": "I want to pay my electricity bill",
+        "entities": [
+            {"start": 17, "end": 33, "label": "BILL_TYPE"}
+        ]
+    },
+    {
+        "text": "pay my gas bill",
+        "entities": [
+            {"start": 7, "end": 15, "label": "BILL_TYPE"}
+        ]
+    },
+    {
+        "text": "I need to pay my phone bill",
+        "entities": [
+            {"start": 17, "end": 27, "label": "BILL_TYPE"}
+        ]
+    },
+    {
+        "text": "pay my Visa bill",
+        "entities": [
+            {"start": 7, "end": 16, "label": "BILL_TYPE"}
+        ]
+    },
+    {
+        "text": "pay my water bill",
+        "entities": [
+            {"start": 7, "end": 17, "label": "BILL_TYPE"}
+        ]
+    },
+    {
+        "text": "can you send $500 to Alex",
+        "entities": [
+            {"start": 13, "end": 17, "label": "AMOUNT"},
+            {"start": 21, "end": 25, "label": "RECIPIENT"}
+        ]
+    },
+    {
+        "text": "move 1000 from savings to checking",
+        "entities": [
+            {"start": 5, "end": 9, "label": "AMOUNT"},
+            {"start": 15, "end": 22, "label": "ACCOUNT_TYPE"},
+            {"start": 26, "end": 34, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "send 50 dollars to Jane Doe",
+        "entities": [
+            {"start": 5, "end": 15, "label": "AMOUNT"},
+            {"start": 19, "end": 27, "label": "RECIPIENT"}
+        ]
+    },
+    {
+        "text": "I want to pay my internet bill",
+        "entities": [
+            {"start": 17, "end": 30, "label": "BILL_TYPE"}
+        ]
+    },
+    {
+        "text": "transfer 250 from checking",
+        "entities": [
+            {"start": 9, "end": 12, "label": "AMOUNT"},
+            {"start": 18, "end": 26, "label": "ACCOUNT_TYPE"}
+        ]
+    },
+    {
+        "text": "what is the ifsc code for coimbatore branch",
+        "entities": [
+            {"start": 27, "end": 37, "label": "BRANCH"}
+        ]
+    },
+    {
+        "text": "ifsc for the main branch in delhi",
+        "entities": [
+            {"start": 17, "end": 32, "label": "BRANCH"}
+        ]
+    }
+]

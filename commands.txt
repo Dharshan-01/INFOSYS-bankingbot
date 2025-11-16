@@ -1,0 +1,17 @@
+-----activate environment-----
+
+.\venv\Scripts\Activate
+
+-----Database-----
+
+python database_setup.py
+
+-----run server-----
+
+python app.py
+
+python -m http.server 8000
+
+-----train-----
+
+python train_intent_classifier.py
