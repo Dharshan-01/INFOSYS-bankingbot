@@ -1,0 +1,75 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.env.*
+venv/
+venv*/
+.venv/
+env/
+Env/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+
+# Logs and runtime files
+*.log
+logs/
+*.pid
+
+# Notebook checkpoints
+.ipynb_checkpoints
+
+# Large model artifacts and checkpoints
+*.safetensors
+*.ckpt
+*.bin
+*.pt
+*.pth
+
+# Common checkpoint patterns (various naming schemes)
+checkpoint-*/
+**/checkpoint-*/
+checkpoint*/
+
+# Trainer state / optimizer / scheduler
+trainer_state.json
+optimizer.pt
+rng_state.pth
+scheduler.pt
+
+# Misc
+model/
+models/
+**/model.safetensors
+
+# Keep tokenizer files (usually small) — ignore only obvious backups
+*tokenizer*.json.bak
+
+# Large model folders (ignore all versions / variants)
+ner-bot-model*/
+**/ner-bot-model*/
+ner-botmodel*/
+
+banking-bot-model*/
+**/banking-bot-model*/
+banking-botmodel*/
+
+# Specific known folder names in this repo
+ner-bot-model-v1/
+banking-bot-model-v1/
