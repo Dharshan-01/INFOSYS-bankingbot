@@ -9,7 +9,7 @@ import uuid
 # --- 1. CONFIGURE YOUR API KEY ---
 # PASTE YOUR KEY HERE!
 try:
-    genai.configure(api_key="")
+    genai.configure(api_key="AIzaSyAtXBiE08zOCTPsT5TcubOWnsCReGMLGzA")
     llm_model = genai.GenerativeModel('gemini-2.5-flash')
     print("Gemini LLM configured successfully with 'gemini-2.5-flash'.")
 except Exception as e:
@@ -22,13 +22,41 @@ app = Flask(__name__)
 CORS(app)
 DATABASE_FILE = 'bot_database.db'
 
-# --- 3. DATABASE HELPER FUNCTION ---
+# --- 3. DATABASE HELPER FUNCTIONS ---
 def get_db_conn():
+    """Establishes a connection to the SQLite database."""
     conn = sqlite3.connect(DATABASE_FILE)
     conn.row_factory = sqlite3.Row 
     return conn
 
-# --- 4. LOAD LOCAL MODELS ONCE ---
+def load_local_responses_from_db():
+    """Loads the entire knowledge base from the DB into a dictionary."""
+    print("Loading Knowledge Base from 'bot_database.db'...")
+    try:
+        db = get_db_conn()
+        rows = db.execute("SELECT intent_name, response_text, response_link, link_text FROM kb_local_intents").fetchall()
+        db.close()
+        responses = {
+            row['intent_name']: {
+                'text': row['response_text'], 
+                'link': row['response_link'],
+                'link_text': row['link_text'] 
+            } for row in rows
+        }
+        print(f"SUCCESS: Loaded {len(responses)} local intents from DB.")
+        return responses
+    except Exception as e:
+        print(f"FATAL ERROR: Could not load Knowledge Base from DB. {e}")
+        print("Please re-run 'python database_setup.py' and restart.")
+        return None
+
+# --- 4. LOAD KNOWLEDGE & MODELS ONCE ---
+bot_responses = load_local_responses_from_db() 
+if not bot_responses:
+    bot_responses = {
+        "fallback": {'text': "I'm sorry, my local knowledge base failed to load. Please contact support.", 'link': None, 'link_text': None}
+    }
+
 print("Loading Local Intent Classifier (banking-bot-model-v1)...")
 intent_model_path = os.path.abspath("./banking-bot-model-v1")
 intent_tokenizer = AutoTokenizer.from_pretrained(intent_model_path)
@@ -43,31 +71,8 @@ ner_pipeline = pipeline("token-classification", model=ner_model, tokenizer=ner_t
 
 print("All models loaded! API is ready.")
 
-# --- 5. DEFINE THE BOT'S RESPONSES (FOR LOCAL MODEL) ---
-# We will pass this whole dictionary to the LLM
-bot_responses = {
-    "check_balance_guide": "To check your balance securely, you can use our NetBanking app, check your e-passbook, or use any UPI app in the 'Check Balance' section.",
-    "check_transactions_guide": "You can see all your recent transactions by checking the 'Mini Statement' or 'e-Passbook' section in your NetBanking or mobile banking app.",
-    "find_account_details": "You can find your account number and customer ID printed on the front page of your bank passbook. You can also find it in your NetBanking app profile section.",
-    "manage_credentials": "You can change your ATM PIN by visiting any of our nearest ATMs...",
-    "block_card_guide": "I can help with that. To confirm, are you blocking the card due to it being lost, stolen, or another reason?",
-    "update_kyc": "I can help with that. Are you looking to do a Mini-KYC (online with Aadhar) or a Full KYC?",
-    "transfer_funds_guide": "How would you like to transfer the money? By using a Phone Number (UPI), or by using an Account Number (NEFT/IMPS)?",
-    "get_transaction_limits": "Our standard daily transaction limits are:\n  - UPI: ₹1,00,000\n  - IMPS: ₹5,00,000...",
-    "set_transaction_limits": "To set your personal transaction limits for security, please log in to the NetBanking app...",
-    "open_account": "What type of account are you interested in? We offer Savings, Current, and Demat accounts.",
-    "get_interest_rates": "I can help with that. Here are our current rates...", # Placeholder, will be replaced by DB query
-    "find_ifsc_code": "I can help with that. Which branch's IFSC code do you need?", # Placeholder
-    "get_bank_hours": "Our bank branches are open from 10:00 AM to 4:00 PM, Monday to Friday. We are closed on all Saturdays, Sundays, and public holidays.",
-    "check_loan_status_guide": "You can check your loan application status by visiting our website...",
-    "pay_bill_guide": "You can pay all your bills (electricity, phone, etc.) using the 'Bill Pay' section in our NetBanking app.",
-    "general_faq": "Our headquarters is located in Mumbai, India. For more information, please visit the 'About Us' section of our website.",
-    "greet": "Hello! How can I help you with your banking questions today?",
-    "summarize_conversation": "One moment, please. I will summarize our bank-related conversation for you.",
-    "fallback": "I'm sorry, I don't quite understand. Can you rephrase? I can help with account guides, transactions, and bank info."
-}
 
-# --- 6. DEFINE NEW, FASTER LLM HELPER FUNCTION ---
+# --- 5. DEFINE LLM HELPER FUNCTION (UPGRADED) ---
 safety_settings = [
     {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
     {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
@@ -75,61 +80,82 @@ safety_settings = [
     {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
 ]
 
-# Create the list of known local intents for the prompt
-known_intents_list = "\n".join([f"- {key}: {value}" for key, value in bot_responses.items() if key != "fallback"])
+# --- NEW: Create a list of links to "teach" the LLM ---
+def build_link_prompt():
+    """Builds a string of linkable topics for the LLM."""
+    link_list = ""
+    for intent, data in bot_responses.items():
+        if data.get("link") and data.get("link_text"):
+            link_list += f"- Topic: '{intent}' (e.g., questions about {intent.replace('_', ' ')})\n"
+            link_list += f"- Link: <a href='{data['link']}' target='_blank'>{data['link_text']}</a>\n\n"
+    return link_list
 
-def get_llm_response(user_text, chat_history_string):
-    """
-    Gets a response from the Gemini LLM in a single, smart call.
-    """
+LINK_KNOWLEDGE_FOR_LLM = build_link_prompt()
+
+def get_llm_response(user_text, llm_mode, chat_history_string=""):
     if not llm_model:
-        print("LLM model not loaded. Using fallback.")
-        return bot_responses["fallback"]
+        return bot_responses["fallback"]["text"]
+    
+    prompt = ""
+    known_intents_list = "\n".join([f"- {key}: {value['text']}" for key, value in bot_responses.items() if key != "fallback"])
 
-    prompt = f"""
-    You are a "Super Bot", a helpful and polite bank assistant.
-    Your job is to triage the user's LATEST message. You have two brains:
-    1. A "Local Brain" with pre-written answers for known intents.
-    2. A "Cloud Brain" (you) for everything else.
+    if llm_mode == "smart_fallback":
+        prompt = f"""
+        You are a "Super Bot", a helpful and polite bank assistant.
+        Your job is to triage the user's LATEST message. You have two brains:
+        1. A "Local Brain" with pre-written answers for known intents.
+        2. A "Cloud Brain" (you) for everything else.
 
-    HERE ARE THE KNOWN LOCAL INTENTS AND THEIR EXACT ANSWERS:
-    {known_intents_list}
-    ---
-    
-    HERE IS THE CONVERSATION HISTORY (for context):
-    {chat_history_string}
-    ---
-    
-    HERE IS THE USER'S LATEST MESSAGE:
-    "{user_text}"
-    ---
-    
-    YOUR TASK:
-    1. Analyze the USER'S LATEST MESSAGE: "{user_text}".
-    2. **First, check for spelling mistakes.** Is it a typo for a known local intent?
-       - Example: If the user says "what is my balanec?", that is a typo for "check_balance_guide".
-       - If it IS a typo for a known intent, respond with the **EXACT pre-written answer** from the list above.
-    
-    3. **If it's NOT a typo,** check if it's "General-Chitchat" (like "hello", "good morning", "what's the weather?").
-       - If it IS chitchat, just be friendly and polite (e.g., "Hello! How can I help you today?").
-    
-    4. **If it's NOT chitchat,** it must be a "New Banking-Related Question" (like "i need a credit card" or "how to apply for a car loan").
-       - If it IS a new banking question, give a helpful, general answer.
-       - **Strictly** DO NOT ask for personal information (account number, name, etc.).
-       - Example response for "i need a credit card": "We offer a variety of credit cards, including travel rewards and cashback options. You can see all our cards and apply on our official bank website under the 'Cards' section."
-    
-    Provide ONLY the final response to the user.
-    """
+        HERE ARE THE KNOWN LOCAL INTENTS:
+        {known_intents_list}
+        ---
+        
+        --- NEW KNOWLEDGE: HERE IS A LIST OF OUR BANK'S WEBPAGES ---
+        {LINK_KNOWLEDGE_FOR_LLM}
+        ---
+        
+        HERE IS THE CONVERSATION HISTORY (for context):
+        {chat_history_string}
+        ---
+        
+        HERE IS THE USER'S LATEST MESSAGE:
+        "{user_text}"
+        ---
+        
+        YOUR TASK:
+        1. Analyze the USER'S LATEST MESSAGE: "{user_text}".
+        
+        2. **First, check for spelling mistakes.** Is it a typo for a known local intent?
+           - Example: If the user says "what is my balanec?", that is a typo for "check_balance_guide".
+           - If it IS a typo for a known intent, respond with ONLY the string "LOCAL_INTENT: [intent_name]". (e.g., "LOCAL_INTENT: check_balance_guide")
+        
+        3. **If it's NOT a typo,** check if it's "General-Chitchat" (like "hello" (which is 'greet'), "good morning", "what's the weather?").
+           - If it IS chitchat, just be friendly and polite (e.g., "Hello! How can I help you today?").
+        
+        4. **If it's NOT chitchat,** it must be a "New Banking-Related Question" (like "i need a credit card" or "how to apply for a car loan").
+           - If it IS a new banking question, give a helpful, general answer.
+           - **AND** check your "NEW KNOWLEDGE" list. If the question is about one of those topics, you **MUST** include the correct HTML link in your response.
+           - Example: If the user asks for a "loan", you MUST add the link for "check_loan_status_guide". If they ask for a "credit card", you MUST add the link for "block_card_guide" (as it's the closest match).
+           - **Strictly** DO NOT ask for personal information.
+        
+        Provide ONLY the final response. If you match a local intent typo, return ONLY the "LOCAL_INTENT: [intent_name]" string.
+        """
+    elif llm_mode == "summarize":
+        prompt = f"You are a bank assistant. Summarize the key bank-related topics from the following conversation.\nConversation History:\n{user_text}"
     
     try:
+        if not prompt: 
+            print(f"LLM Error: No prompt generated for mode {llm_mode}")
+            return bot_responses["fallback"]["text"]
+            
         response = llm_model.generate_content(prompt, safety_settings=safety_settings)
         return response.text.strip()
     except Exception as e:
-        print(f"LLM Error: {e}")
-        return bot_responses["fallback"]
+        print(f"LLM Error ({llm_mode}): {e}")
+        return bot_responses["fallback"]["text"]
 
 
-# --- 7. CREATE THE API ENDPOINT (v4 - The "Fast Bot") ---
+# --- 6. CREATE THE API ENDPOINT (UPGRADED LOGIC) ---
 @app.route("/chat", methods=["POST"])
 def chat():
     db = get_db_conn() 
@@ -138,36 +164,44 @@ def chat():
         data = request.json
         user_text = data["message"]
         session_id = data["session_id"]
+        
+        user_text_lower = user_text.lower() 
 
-        # --- Session Management ---
         if session_id == "new":
             session_id = str(uuid.uuid4()) 
             db.execute("INSERT INTO sessions (session_id, current_state) VALUES (?, NULL)", (session_id,))
             print(f"New session created: {session_id}")
         
-        # Save user message to history
         db.execute("INSERT INTO history (session_id, sender, message) VALUES (?, 'user', ?)", (session_id, user_text))
 
-        # --- Get "Memory" (current_state) from DB ---
         state_row = db.execute("SELECT current_state FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
         state = state_row['current_state'] if state_row else None
 
-        response = ""
+        response_text = ""
+        response_data = {} 
+        add_link = False # Flag to control adding the link
 
         # --- Check "Memory" (State Management) FIRST ---
         if state == "awaiting_account_type":
-            # (Logic is the same, but now we update the DB)
-            if "savings" in user_text.lower():
-                response = "To open a Savings account, you will need your PAN and Aadhar card..."
-            elif "current" in user_text.lower():
-                response = "To open a Current account, you will need your business registration documents..."
-            elif "demat" in user_text.lower():
-                response = "To open a Demat account, you will need your PAN, Aadhar, and a blank cheque..."
+            print("Bot state is 'awaiting_account_type'. Checking user response...")
+            
+            response_data = bot_responses.get("open_account")
+            add_link = True # We want to add the link
+            
+            if "savings" in user_text_lower:
+                response_text = "To open a Savings account, you will need your PAN and Aadhar card. You can start the process on our website or visit a branch."
+            elif "current" in user_text_lower:
+                response_text = "To open a Current account, you will need your business registration documents. Please visit a branch for assistance."
+            elif "demat" in user_text_lower:
+                response_text = "To open a Demat account, you will need your PAN, Aadhar, and a blank cheque. You can start the process on our website."
             else:
-                response = "I'm sorry, I didn't recognize that account type. We offer Savings, Current, and Demat accounts."
+                response_text = "I'm sorry, I didn't recognize that account type. We offer Savings, Current, and Demat accounts."
+                add_link = False # Don't add a link if the answer is wrong
+            
             db.execute("UPDATE sessions SET current_state = NULL WHERE session_id = ?", (session_id,)) 
 
         elif state == "awaiting_branch_name":
+            print("Bot state is 'awaiting_branch_name'. Checking user response...")
             entities = ner_pipeline(user_text)
             branch_name = user_text # Default
             for entity in entities:
@@ -176,27 +210,26 @@ def chat():
             
             ifsc_row = db.execute("SELECT ifsc_code FROM ifsc_codes WHERE branch_name = ?", (branch_name.lower(),)).fetchone()
             if ifsc_row:
-                response = f"The IFSC code for the {branch_name} branch is: {ifsc_row['ifsc_code']}"
+                response_text = f"The IFSC code for the {branch_name} branch is: {ifsc_row['ifsc_code']}"
             else:
-                response = f"I don't have the code for {branch_name}, but you can find all codes on our website."
+                response_text = f"I don't have the code for {branch_name}, but you can find all codes on our website."
             db.execute("UPDATE sessions SET current_state = NULL WHERE session_id = ?", (session_id,)) 
 
         else:
             # --- No "Memory" set -> Run NLU and TRIAGE ---
+            print("Bot state is 'None'. Running NLU...")
             intent_result = intent_classifier(user_text)
             top_intent = intent_result[0]['label']
             intent_score = intent_result[0]['score']
 
-            # --- THE NEW "FAST BOT" TRIAGE ---
-            if intent_score > 0.7:  # <-- CONFIDENCE THRESHOLD
-                # HIGH CONFIDENCE: It's a known bank task. Use local brain.
+            if intent_score > 0.7:
                 print(f"Local Intent: {top_intent} (Score: {intent_score:.2f})")
                 
                 if top_intent == "get_interest_rates":
                     rates_rows = db.execute("SELECT product_name, rate FROM interest_rates").fetchall()
-                    response = "Our current interest rates are:\n"
+                    response_text = "Our current interest rates are:\n"
                     for row in rates_rows:
-                        response += f"  - {row['product_name']}: {row['rate']}\n"
+                        response_text += f"  - {row['product_name']}: {row['rate']}\n"
 
                 elif top_intent == "find_ifsc_code":
                     entities = ner_pipeline(user_text)
@@ -207,56 +240,75 @@ def chat():
                     if branch_name:
                         ifsc_row = db.execute("SELECT ifsc_code FROM ifsc_codes WHERE branch_name = ?", (branch_name.lower(),)).fetchone()
                         if ifsc_row:
-                            response = f"The IFSC code for the {branch_name} branch is: {ifsc_row['ifsc_code']}"
+                            response_text = f"The IFSC code for the {branch_name} branch is: {ifsc_row['ifsc_code']}"
                         else:
-                            response = f"I don't have the code for {branch_name}."
+                            response_text = f"I don't have the code for {branch_name}."
                     else:
-                        response = bot_responses["find_ifsc_code"]
+                        response_text = bot_responses["find_ifsc_code"]["text"]
+                        print("Setting state to 'awaiting_branch_name'")
                         db.execute("UPDATE sessions SET current_state = ? WHERE session_id = ?", ("awaiting_branch_name", session_id)) # Set memory
 
                 elif top_intent == "summarize_conversation":
                     history_rows = db.execute("SELECT sender, message FROM history WHERE session_id = ?", (session_id,)).fetchall()
                     if not history_rows:
-                        response = "We haven't talked about anything yet!"
+                        response_text = "We haven't talked about anything yet!"
                     else:
                         history_text = "\n".join([f"{row['sender']}: {row['message']}" for row in history_rows])
-                        # Call the LLM with the *summarize* prompt
-                        response = get_llm_response(history_text, "summarize") 
+                        response_text = get_llm_response(history_text, "summarize") 
 
                 elif top_intent == "open_account":
-                    response = bot_responses["open_account"]
+                    response_text = bot_responses["open_account"]["text"]
+                    print("Setting state to 'awaiting_account_type'")
                     db.execute("UPDATE sessions SET current_state = ? WHERE session_id = ?", ("awaiting_account_type", session_id)) # Set memory
                 
                 else:
-                    response = bot_responses.get(top_intent, bot_responses["fallback"])
-            
+                    response_data = bot_responses.get(top_intent, bot_responses["fallback"])
+                    response_text = response_data["text"]
+                    add__link = True # Flag that we want to add a link if one exists
+
             else:
-                # LOW CONFIDENCE: It's chitchat, a typo, OR a new bank task.
-                # Send to the LLM for the ONE-SHOT, FAST response.
+                # --- LLM Triage (now smarter) ---
                 print(f"Local Intent failed (Score: {intent_score:.2f}). Sending to LLM...")
-                
-                # Get chat history for context
                 history_rows = db.execute("SELECT sender, message FROM history WHERE session_id = ? ORDER BY timestamp DESC LIMIT 10", (session_id,)).fetchall()
                 history_text = "\n".join([f"{row['sender']}: {row['message']}" for row in reversed(history_rows)])
                 
-                response = get_llm_response(user_text, history_text)
+                # --- THIS IS THE UPGRADED CALL ---
+                response_text = get_llm_response(user_text, "smart_fallback", chat_history_string=history_text)
+
+                if response_text.startswith("LOCAL_INTENT:"):
+                    intent_name = response_text.split(":")[-1].strip()
+                    print(f"LLM corrected typo to: {intent_name}")
+                    response_data = bot_responses.get(intent_name, bot_responses["fallback"])
+                    response_text = response_data["text"]
+                    add_link = True # Flag that we want to add a link
+                
+                # --- NEW: If the LLM response is just text, we don't add a link ---
+                # The LLM is now responsible for adding the link itself if it's a new bank query
+                else:
+                    add_link = False # The LLM already added the link if needed
+
+        # --- NEW: Centralized Link Logic ---
+        # This now *only* runs for our local intents
+        if add_link:
+            if response_data and response_data.get("link") and response_data.get("link_text"):
+                response_text += f"<br><br><a href='{response_data['link']}' target='_blank'>{response_data['link_text']}</a>"
+
 
         # --- Save Bot Response to History ---
-        db.execute("INSERT INTO history (session_id, sender, message) VALUES (?, 'bot', ?)", (session_id, response))
-        db.commit() # Commit all changes
+        db.execute("INSERT INTO history (session_id, sender, message) VALUES (?, 'bot', ?)", (session_id, response_text.split("<br>")[0]))
+        db.commit() 
         
-        # --- Send Response (with session_id) ---
-        return jsonify({"response": response, "session_id": session_id})
+        return jsonify({"response": response_text, "session_id": session_id})
 
     except Exception as e:
         print(f"Error: {e}")
         if 'db' in locals():
-            db.close() # Close connection on error
+            db.close()
         return jsonify({"response": "I'm sorry, I ran into an error. Please try again.", "session_id": None})
     finally:
         if 'db' in locals():
-            db.close() # Always close the connection
+            db.close() 
 
-# --- 8. RUN THE APP ---
+# --- 7. RUN THE APP ---
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
