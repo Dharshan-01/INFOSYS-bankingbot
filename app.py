@@ -10,6 +10,7 @@ import uuid
 # PASTE YOUR KEY HERE!
 try:
     genai.configure(api_key="AIzaSyAtXBiE08zOCTPsT5TcubOWnsCReGMLGzA")
+    # --- BUG 1 FIX: Use the correct model name ---
     llm_model = genai.GenerativeModel('gemini-2.5-flash')
     print("Gemini LLM configured successfully with 'gemini-2.5-flash'.")
 except Exception as e:
@@ -34,13 +35,16 @@ def load_local_responses_from_db():
     print("Loading Knowledge Base from 'bot_database.db'...")
     try:
         db = get_db_conn()
-        rows = db.execute("SELECT intent_name, response_text, response_link, link_text FROM kb_local_intents").fetchall()
+        # --- NEW FEATURE: Select all 5 columns ---
+        rows = db.execute("SELECT intent_name, response_text, response_link, link_text, suggested_questions FROM kb_local_intents").fetchall()
         db.close()
+        # --- NEW FEATURE: Store all 5 columns ---
         responses = {
             row['intent_name']: {
                 'text': row['response_text'], 
                 'link': row['response_link'],
-                'link_text': row['link_text'] 
+                'link_text': row['link_text'],
+                'suggestions': row['suggested_questions'] # Add the suggestions
             } for row in rows
         }
         print(f"SUCCESS: Loaded {len(responses)} local intents from DB.")
@@ -54,7 +58,8 @@ def load_local_responses_from_db():
 bot_responses = load_local_responses_from_db() 
 if not bot_responses:
     bot_responses = {
-        "fallback": {'text': "I'm sorry, my local knowledge base failed to load. Please contact support.", 'link': None, 'link_text': None}
+        # Fixed the SyntaxError here
+        "fallback": {'text': "I'm sorry, my local knowledge base failed to load. Please contact support.", 'link': None, 'link_text': None, 'suggestions': None}
     }
 
 print("Loading Local Intent Classifier (banking-bot-model-v1)...")
@@ -180,6 +185,7 @@ def chat():
         response_text = ""
         response_data = {} 
         add_link = False # Flag to control adding the link
+        suggestions = [] # <-- NEW FEATURE: Start with empty suggestions
 
         # --- Check "Memory" (State Management) FIRST ---
         if state == "awaiting_account_type":
@@ -225,11 +231,23 @@ def chat():
             if intent_score > 0.7:
                 print(f"Local Intent: {top_intent} (Score: {intent_score:.2f})")
                 
+                # --- NEW FEATURE: Get the full response data ---
+                response_data = bot_responses.get(top_intent, bot_responses["fallback"])
+                response_text = response_data["text"]
+                add_link = True # Flag that we want to add a link
+                
+                # --- NEW FEATURE: Check for and parse suggestions ---
+                suggestions_string = response_data.get("suggestions")
+                if suggestions_string:
+                    suggestions = suggestions_string.split('|')
+
+                # --- Handle special dynamic/multi-step intents ---
                 if top_intent == "get_interest_rates":
                     rates_rows = db.execute("SELECT product_name, rate FROM interest_rates").fetchall()
                     response_text = "Our current interest rates are:\n"
                     for row in rates_rows:
                         response_text += f"  - {row['product_name']}: {row['rate']}\n"
+                    add_link = False # No link for this dynamic one
 
                 elif top_intent == "find_ifsc_code":
                     entities = ner_pipeline(user_text)
@@ -239,40 +257,31 @@ def chat():
                             branch_name = entity['word']; break
                     if branch_name:
                         ifsc_row = db.execute("SELECT ifsc_code FROM ifsc_codes WHERE branch_name = ?", (branch_name.lower(),)).fetchone()
-                        if ifsc_row:
-                            response_text = f"The IFSC code for the {branch_name} branch is: {ifsc_row['ifsc_code']}"
-                        else:
-                            response_text = f"I don't have the code for {branch_name}."
+                        if ifsc_row: response_text = f"The IFSC code for the {branch_name} branch is: {ifsc_row['ifsc_code']}"
+                        else: response_text = f"I don't have the code for {branch_name}."
+                        add_link = False # Already answered
                     else:
-                        response_text = bot_responses["find_ifsc_code"]["text"]
-                        print("Setting state to 'awaiting_branch_name'")
                         db.execute("UPDATE sessions SET current_state = ? WHERE session_id = ?", ("awaiting_branch_name", session_id)) # Set memory
 
                 elif top_intent == "summarize_conversation":
                     history_rows = db.execute("SELECT sender, message FROM history WHERE session_id = ?", (session_id,)).fetchall()
-                    if not history_rows:
-                        response_text = "We haven't talked about anything yet!"
+                    if not history_rows: response_text = "We haven't talked about anything yet!"
                     else:
                         history_text = "\n".join([f"{row['sender']}: {row['message']}" for row in history_rows])
                         response_text = get_llm_response(history_text, "summarize") 
+                    add_link = False
 
                 elif top_intent == "open_account":
-                    response_text = bot_responses["open_account"]["text"]
-                    print("Setting state to 'awaiting_account_type'")
                     db.execute("UPDATE sessions SET current_state = ? WHERE session_id = ?", ("awaiting_account_type", session_id)) # Set memory
                 
-                else:
-                    response_data = bot_responses.get(top_intent, bot_responses["fallback"])
-                    response_text = response_data["text"]
-                    add__link = True # Flag that we want to add a link if one exists
-
+                # (No 'else' needed, default case is handled above)
+            
             else:
                 # --- LLM Triage (now smarter) ---
                 print(f"Local Intent failed (Score: {intent_score:.2f}). Sending to LLM...")
                 history_rows = db.execute("SELECT sender, message FROM history WHERE session_id = ? ORDER BY timestamp DESC LIMIT 10", (session_id,)).fetchall()
                 history_text = "\n".join([f"{row['sender']}: {row['message']}" for row in reversed(history_rows)])
                 
-                # --- THIS IS THE UPGRADED CALL ---
                 response_text = get_llm_response(user_text, "smart_fallback", chat_history_string=history_text)
 
                 if response_text.startswith("LOCAL_INTENT:"):
@@ -281,14 +290,15 @@ def chat():
                     response_data = bot_responses.get(intent_name, bot_responses["fallback"])
                     response_text = response_data["text"]
                     add_link = True # Flag that we want to add a link
+                    # --- NEW FEATURE: Get suggestions for LLM-corrected typos ---
+                    suggestions_string = response_data.get("suggestions")
+                    if suggestions_string:
+                        suggestions = suggestions_string.split('|')
                 
-                # --- NEW: If the LLM response is just text, we don't add a link ---
-                # The LLM is now responsible for adding the link itself if it's a new bank query
                 else:
                     add_link = False # The LLM already added the link if needed
 
         # --- NEW: Centralized Link Logic ---
-        # This now *only* runs for our local intents
         if add_link:
             if response_data and response_data.get("link") and response_data.get("link_text"):
                 response_text += f"<br><br><a href='{response_data['link']}' target='_blank'>{response_data['link_text']}</a>"
@@ -298,13 +308,14 @@ def chat():
         db.execute("INSERT INTO history (session_id, sender, message) VALUES (?, 'bot', ?)", (session_id, response_text.split("<br>")[0]))
         db.commit() 
         
-        return jsonify({"response": response_text, "session_id": session_id})
+        # --- NEW FEATURE: Return suggestions to the frontend ---
+        return jsonify({"response": response_text, "session_id": session_id, "suggestions": suggestions})
 
     except Exception as e:
         print(f"Error: {e}")
         if 'db' in locals():
             db.close()
-        return jsonify({"response": "I'm sorry, I ran into an error. Please try again.", "session_id": None})
+        return jsonify({"response": "I'm sorry, I ran into an error. Please try again.", "session_id": None, "suggestions": []})
     finally:
         if 'db' in locals():
             db.close() 
