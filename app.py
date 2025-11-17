@@ -9,7 +9,7 @@ import uuid
 # --- 1. CONFIGURE YOUR API KEY ---
 # PASTE YOUR KEY HERE!
 try:
-    genai.configure(api_key="AIzaSyAtXBiE08zOCTPsT5TcubOWnsCReGMLGzA")
+    genai.configure(api_key="")
     # --- BUG 1 FIX: Use the correct model name ---
     llm_model = genai.GenerativeModel('gemini-2.5-flash')
     print("Gemini LLM configured successfully with 'gemini-2.5-flash'.")
