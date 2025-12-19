@@ -1,0 +1,33 @@
+# --- Python & Flask ---
+__pycache__/
+*.pyc
+instance/
+.pytest_cache/
+
+# --- Virtual Environments (Too big to upload) ---
+venv/
+env/
+.venv/
+
+# --- Environment Variables & Secrets (CRITICAL) ---
+.env
+config.py
+secrets.py
+
+# --- Machine Learning (Generated Files) ---
+# It is better to regenerate these using train_brain.py on the server
+# rather than uploading large binary files.
+*.pkl
+local_brain.pkl
+
+# --- IDE Settings (VS Code / PyCharm) ---
+.vscode/
+.idea/
+
+# --- Operating System Junk ---
+.DS_Store
+Thumbs.db
+
+# --- Secrets ---
+key.txt
+keys.txt

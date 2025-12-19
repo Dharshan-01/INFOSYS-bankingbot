@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Finance - Vaulty</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="logo-area">
+                <i class="fas fa-university fa-lg"></i>
+                <div class="header-info">
+                    <h2>Nova Finance</h2>
+                    <span class="status"><span class="dot"></span> Vaulty AI • Online</span>
+                </div>
+            </div>
+            <button id="logout-btn" title="Logout" class="header-btn"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+
+        <div class="chat-box" id="chat-box"></div>
+
+        <div class="input-area">
+            <button id="mute-btn" class="icon-btn" title="Toggle Voice Output">
+                <i class="fas fa-volume-up"></i>
+            </button>
+            
+            <input type="text" id="user-input" placeholder="Type or speak..." autocomplete="off">
+            
+            <button id="mic-btn" class="icon-btn" title="Speak">
+                <i class="fas fa-microphone"></i>
+            </button>
+            
+            <button id="send-btn" class="send-btn" title="Send">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

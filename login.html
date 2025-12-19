@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Finance Login</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; display: flex; justify-content: center; align-items: center; height: 100vh; color: white; }
+        .box { background: #1e293b; padding: 40px; border-radius: 12px; width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        h1 { color: #38bdf8; margin-bottom: 5px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box;}
+        button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-login { background: #38bdf8; color: #0f172a; }
+        .btn-login:hover { background: #0ea5e9; }
+        .btn-guest { background: transparent; border: 1px solid #475569; color: #94a3b8; }
+        .btn-guest:hover { border-color: #94a3b8; color: white; }
+        .error { color: #ef4444; font-size: 0.9rem; display: none; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Nova Finance</h1>
+        <p style="color:#64748b; margin-bottom:30px;">Secure Banking Portal</p>
+        
+        <input type="text" id="user" placeholder="Username (e.g. user1)">
+        <input type="password" id="pass" placeholder="Password">
+        <button class="btn-login" onclick="login()">Login</button>
+        <p class="error" id="err-msg">Invalid Credentials</p>
+
+        <div style="margin: 20px 0; border-top: 1px solid #334155;"></div>
+        <button class="btn-guest" onclick="guestMode()">Continue as Guest</button>
+    </div>
+
+    <script>
+        const API_URL = "http://127.0.0.1:5000"; 
+
+        async function login() {
+            const u = document.getElementById('user').value;
+            const p = document.getElementById('pass').value;
+            try {
+                const res = await fetch(`${API_URL}/auth/customer/login`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username: u, password: p })
+                });
+                if(res.ok) {
+                    const data = await res.json();
+                    sessionStorage.setItem('nova_user_id', data.user_id);
+                    sessionStorage.setItem('nova_user_name', data.name);
+                    window.location.href = "index.html"; 
+                } else { document.getElementById('err-msg').style.display = 'block'; }
+            } catch(e) { alert("Server Error"); }
+        }
+
+        function guestMode() {
+            sessionStorage.removeItem('nova_user_id');
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>
